@@ -18,7 +18,7 @@ exports.handler = async (event) => {
         price_data: {
           currency: 'eur',
           product_data: {
-            name: item.name || item.title || 'Produit BodyNature',
+            name: item.nm || item.name || item.title || 'Produit BodyNature',
           },
           unit_amount: Math.round((item.price || 0) * 100), // conversion en centimes
         },
