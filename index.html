@@ -335,11 +335,6 @@ footer{background:var(--charcoal);color:rgba(255,255,255,.58);padding:52px 6% 26
     <li><a href="#conseillere">Conseillère</a></li>
   </ul>
   <div class="nav-right">
-    <button class="cart-btn" onclick="openCart()" aria-label="Ouvrir le panier">
-      <span class="cart-ico">🛍️</span>
-      <span class="cart-txt">Panier</span>
-      <span class="cart-count" id="cartCount">0</span>
-    </button>
   </div>
 </nav>
 
@@ -491,17 +486,6 @@ footer{background:var(--charcoal);color:rgba(255,255,255,.58);padding:52px 6% 26
   </div>
 </div>
 
-<!-- PANIER -->
-<div class="overlay" id="cartOverlay" onclick="closeCart()"></div>
-<div class="drawer" id="cartDrawer" role="dialog" aria-label="Panier">
-  <div class="drawer-head">
-    <span class="drawer-title">Votre panier</span>
-    <button class="close-x" onclick="closeCart()" aria-label="Fermer">✕</button>
-  </div>
-  <div class="cart-body" id="cartBody"></div>
-  <div class="cart-foot-wrap" id="cartFootWrap"></div>
-</div>
-
 <div class="notif" id="notif" role="status"></div>
 
 <script>
@@ -591,129 +575,8 @@ const products=[
 ];
 
 const catBg={lessive:'#EEF5EE',vaisselle:'#FFF5E8',maison:'#EEF8F5',microfibre:'#F0F5E8',flacons:'#F5F0E8'};
-const CART_KEY='bn_cart';
 let cart={};
-try{cart=JSON.parse(localStorage.getItem(CART_KEY)||'{}');}catch(e){cart={};}
 let menuOpen=false;
-
-/* ── PANIER ── */
-function getCartItems(){
-  return Object.keys(cart).map(id=>{
-    const p=products.find(x=>x.id==id);
-    return p?Object.assign({},p,{qty:cart[id]}):null;
-  }).filter(Boolean);
-}
-function cartCount(){return Object.values(cart).reduce((a,b)=>a+b,0);}
-function cartTotal(){return getCartItems().reduce((s,it)=>s+it.price*it.qty,0);}
-
-function saveCart(){
-  try{localStorage.setItem(CART_KEY,JSON.stringify(cart));}catch(e){}
-  updateCartUI();
-}
-
-function updateCartUI(){
-  const n=cartCount();
-  const el=document.getElementById('cartCount');
-  if(el){el.textContent=n;el.style.display=n>0?'flex':'none';}
-}
-
-function addToCart(id,qty=1){
-  cart[id]=(cart[id]||0)+qty;
-  saveCart();
-  showNotif('Ajouté au panier ✓');
-}
-
-function changeQty(id,delta){
-  const nv=(cart[id]||0)+delta;
-  if(nv<=0)delete cart[id];else cart[id]=nv;
-  saveCart();
-  renderCartDrawer();
-}
-
-function removeFromCart(id){
-  delete cart[id];
-  saveCart();
-  renderCartDrawer();
-}
-
-function openCart(){
-  renderCartDrawer();
-  document.getElementById('cartOverlay').classList.add('open');
-  document.getElementById('cartDrawer').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-
-function closeCart(){
-  document.getElementById('cartOverlay').classList.remove('open');
-  document.getElementById('cartDrawer').classList.remove('open');
-  document.body.style.overflow='';
-}
-
-function renderCartDrawer(){
-  const items=getCartItems();
-  const body=document.getElementById('cartBody');
-  const footWrap=document.getElementById('cartFootWrap');
-  if(items.length===0){
-    body.innerHTML=`<div class="cart-empty">🛍️<br><br>Votre panier est vide</div>`;
-    footWrap.innerHTML='';
-    return;
-  }
-  body.innerHTML=items.map(it=>`
-    <div class="ci">
-      <div class="ci-img" style="background:${catBg[it.cat]||'#F7F3EE'}">
-        ${it.img?`<img src="${it.img}" alt="${it.nm}" style="width:100%;height:100%;object-fit:contain;border-radius:10px">`:`<span>${it.ico||''}</span>`}
-      </div>
-      <div class="ci-info">
-        <div class="ci-nm">${it.nm}</div>
-        <div class="ci-price">${it.price.toFixed(2).replace('.',',')} €</div>
-        <div class="ci-qty">
-          <button class="qb" onclick="changeQty(${it.id},-1)" aria-label="Diminuer la quantité">−</button>
-          <span class="qv">${it.qty}</span>
-          <button class="qb" onclick="changeQty(${it.id},1)" aria-label="Augmenter la quantité">+</button>
-        </div>
-      </div>
-      <button class="del-btn" onclick="removeFromCart(${it.id})" aria-label="Retirer du panier">🗑</button>
-    </div>
-  `).join('');
-  const total=cartTotal();
-  const n=cartCount();
-  footWrap.innerHTML=`
-    <div class="cart-tot">
-      <span class="cart-tot-lbl">Total (${n} article${n>1?'s':''})</span>
-      <span class="cart-tot-val">${total.toFixed(2).replace('.',',')} €</span>
-    </div>
-    <button class="checkout" onclick="checkoutCart()">Passer commande</button>
-    <p class="cart-note">🚚 Livraison offerte dès 60€ · Paiement sécurisé via Stripe</p>
-  `;
-}
-
-async function checkoutCart() {
-  const items = getCartItems();
-  if (items.length === 0) return;
-
-  showNotif('Création de votre commande...');
-
-  try {
-    const response = await fetch('/.netlify/functions/create-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: items })
-    });
-
-    const data = await response.json();
-
-    if (data.url) {
-      // Redirection transparente vers la page de paiement Stripe unique
-      window.location.href = data.url;
-    } else {
-      showNotif('Erreur lors de la commande ❌');
-      console.error('Erreur Stripe:', data.error);
-    }
-  } catch (err) {
-    console.error(err);
-    showNotif('Problème de connexion ❌');
-  }
-}
 
 function toggleMenu(){
   menuOpen=!menuOpen;
@@ -728,14 +591,13 @@ function renderProducts(filter='all'){
     <div class="prod-card" onclick="openModal(${p.id})">
       <div class="prod-img" style="background:${catBg[p.cat]||'#F7F3EE'}">
         ${p.badge?`<span class="pbadge ${p.badge==='Promo'||p.badge==='Pack'?'pbadge-promo':p.badge==='Économique'?'pbadge-eco':''}">${p.badge}</span>`:''}
-        ${p.img ? `<img src="${p.img}" alt="${p.nm}">` : `<span class="prod-ico">${p.ico}</span><span class="prod-ref">Réf. ${p.ref}</span>`}
+        ${p.img?`<img src="${p.img}" alt="${p.nm}">`:`<><span class="prod-ico">${p.ico}</span><span class="prod-ref">Réf. ${p.ref}</span></>`}
       </div>
       <div class="prod-info">
         <p class="prod-cat">${p.cat}</p>
         <h3 class="prod-nm">${p.nm}</h3>
         <div class="prod-foot">
           <span class="prod-price">${p.price.toFixed(2).replace('.',',')} €</span>
-          <button class="add-btn" onclick="event.stopPropagation();addToCart(${p.id})" aria-label="Ajouter au panier">+</button>
         </div>
       </div>
     </div>
@@ -772,8 +634,10 @@ function openModal(id){
         <div class="mod-tags">${(p.tags||[]).map(t=>`<span class="mod-tag">${t}</span>`).join('')}</div>
         <div class="mod-foot">
           <div class="mod-add-row">
-            <button class="btn-p" onclick="addToCart(${p.id});document.getElementById('modOverlay').classList.remove('open')">🛍️ Ajouter au panier</button>
-            ${p.stripe_url ? `<a class="btn-o" href="${p.stripe_url}" target="_blank" rel="noopener">Achat direct</a>` : ''}
+            ${p.stripe_url
+              ? `<a class="btn-p" href="${p.stripe_url}" target="_blank" rel="noopener">🛒 Commander</a>`
+              : `<button class="btn-p" onclick="addToCart(${p.id});document.getElementById('modOverlay').classList.remove('open')">Ajouter au panier</button>`
+            }
           </div>
           <p class="mod-note">🚚 Livraison offerte dès 60€ · ↩️ Retours 30 jours</p>
         </div>
@@ -792,7 +656,6 @@ function showNotif(msg){
 
 // Init
 renderProducts();
-updateCartUI();
 </script>
 </body>
 </html>
