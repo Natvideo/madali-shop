@@ -3,31 +3,39 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 exports.handler = async (event) => {
   // Accepter uniquement les requêtes POST
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 450, body: 'Méthode non autorisée' };
+    return { statusCode: 405, body: 'Méthode non autorisée' };
   }
 
   try {
     const { items } = JSON.parse(event.body);
 
     // Transformation des articles du panier pour l'API Stripe
-    const lineItems = items.map(item => ({
-      price_data: {
-        currency: 'eur',
-        product_data: {
-          name: item.name,
+    const lineItems = items.map(item => {
+      // On s'assure d'avoir une quantité valide (au moins 1)
+      const qty = parseInt(item.quantity || item.qty || 1, 10);
+
+      return {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: item.name || item.title || 'Produit BodyNature',
+          },
+          unit_amount: Math.round((item.price || 0) * 100), // conversion en centimes
         },
-        unit_amount: Math.round(item.price * 100), // conversion en centimes
-      },
-      quantity: item.quantity,
-    }));
+        quantity: qty > 0 ? qty : 1, // Garantit une quantité >= 1
+      };
+    });
+
+    // Récupération dynamique de l'URL d'origine
+    const origin = event.headers.origin || event.headers.referer || 'https://madaliservice-shop.netlify.app';
 
     // Création de la session Checkout Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${event.headers.origin}/success.html`, // Redirection en cas de succès
-      cancel_url: `${event.headers.origin}/cart.html`,    // Redirection si annulation
+      success_url: `${origin}/success.html`,
+      cancel_url: `${origin}/index.html`,
     });
 
     return {
@@ -35,6 +43,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({ url: session.url }),
     };
   } catch (error) {
+    console.error('Erreur Stripe:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message }),
