@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commande confirmée — Body Nature</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sage:#5A8A5E;--sage-d:#3A6A3E;--sage-l:#B8D4BB;--sage-xl:#E8F2E8;
+    --cream:#F7F3EE;--warm:#FDFAF6;--charcoal:#2C2C2A;
+    --earth:#8B6F5E;--gold:#B8964A;
+    --border:rgba(44,44,42,0.11);--border-m:rgba(44,44,42,0.18);
+    --shadow:0 2px 16px rgba(0,0,0,.07);
+    --r:14px;--r-sm:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'DM Sans',sans-serif;background:var(--warm);color:var(--charcoal);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:24px;line-height:1.6;
+  }
+  .card{
+    max-width:460px;width:100%;background:#fff;border:1px solid var(--border);
+    border-radius:20px;box-shadow:var(--shadow);padding:52px 40px 44px;text-align:center;
+  }
+  .check-wrap{
+    width:76px;height:76px;border-radius:50%;background:var(--sage-xl);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 26px;
+  }
+  .check-wrap svg{width:36px;height:36px}
+  .check-wrap circle{stroke:var(--sage);}
+  .check-wrap path{stroke:var(--sage);}
+  h1{
+    font-family:'Cormorant Garamond',serif;font-weight:400;font-size:32px;
+    line-height:1.2;margin-bottom:14px;
+  }
+  h1 span{color:var(--sage)}
+  p{font-size:14.5px;color:rgba(44,44,42,.72);margin-bottom:8px}
+  .order-note{
+    font-size:13px;color:rgba(44,44,42,.55);margin:22px 0 30px;
+    padding-top:22px;border-top:1px solid var(--border);
+  }
+  .btn-p{
+    background:var(--sage);color:#fff;border:none;padding:14px 30px;border-radius:40px;
+    font-size:14.5px;font-weight:500;text-decoration:none;display:inline-block;
+    transition:background .2s;font-family:'DM Sans',sans-serif;
+  }
+  .btn-p:hover{background:var(--sage-d)}
+  .logo{
+    font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:300;
+    letter-spacing:.1em;color:var(--charcoal);margin-bottom:30px;display:block;
+  }
+  .logo span{color:var(--sage)}
+</style>
+</head>
+<body>
+  <div class="card">
+    <span class="logo">Body<span>Nature</span></span>
+    <div class="check-wrap">
+      <svg viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="24" stroke-width="2.5"/>
+        <path d="M15 27l7 7 15-15" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>Merci pour votre<br><span>commande</span> !</h1>
+    <p>Votre paiement a bien été effectué.</p>
+    <p>Vous recevrez un e-mail de confirmation avec le récapitulatif de votre commande.</p>
+    <div class="order-note">Notre équipe prépare votre colis avec soin. Il sera expédié dans les meilleurs délais.</div>
+    <a class="btn-p" href="/index.html">← Retour à la boutique</a>
+  </div>
+</body>
+</html>
