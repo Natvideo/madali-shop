@@ -34,6 +34,12 @@ exports.handler = async (event) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
+      shipping_address_collection: {
+        allowed_countries: ['FR', 'BE', 'CH', 'LU', 'MC'],
+      },
+      phone_number_collection: {
+        enabled: true,
+      },
       success_url: `${origin}/success.html`,
       cancel_url: `${origin}/index.html`,
     });
